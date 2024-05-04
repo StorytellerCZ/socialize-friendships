@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unresolved */
-import SimpleSchema from 'simpl-schema';
+import SimpleSchema from 'meteor/aldeed:simple-schema';
 /* eslint-enable import/no-unresolved */
 
 export default ({ Meteor, Mongo, BaseModel, ServerTime }) => {
@@ -47,8 +47,8 @@ export default ({ Meteor, Mongo, BaseModel, ServerTime }) => {
         * @function user
         * @memberof Friend
         */
-        user() {
-            return Meteor.users.findOne({ _id: this.friendId });
+        async user() {
+            return Meteor.users.findOneAsync({ _id: this.friendId });
         }
     }
 
@@ -67,13 +67,11 @@ export default ({ Meteor, Mongo, BaseModel, ServerTime }) => {
                 }
                 return undefined;
             },
-            index: 1,
             denyUpdate: true,
         },
         friendId: {
             type: String,
             regEx: SimpleSchema.RegEx.Id,
-            index: 1,
             denyUpdate: true,
         },
         createdAt: {
@@ -84,7 +82,6 @@ export default ({ Meteor, Mongo, BaseModel, ServerTime }) => {
                 }
                 return undefined;
             },
-            index: -1,
             denyUpdate: true,
         },
     }));

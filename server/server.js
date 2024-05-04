@@ -7,6 +7,10 @@ import { RequestsCollection } from 'meteor/socialize:requestable';
 import './publications.js';
 import { Friend, FriendsCollection } from '../common/common.js';
 
+FriendsCollection.createIndexAsync({ userId: 1 })
+FriendsCollection.createIndexAsync({ friendId: 1 })
+FriendsCollection.createIndexAsync({ createdAt: -1 })
+
 FriendsCollection.allow({
     insert(userId, friend) {
         if (userId) {
@@ -37,17 +41,17 @@ FriendsCollection.after.insert(function afterInsert(userId, document) {
     // insert a proper record since we rely on simple-schema's autoValue feature
     if (friend.hasFriendshipRequestFrom(user)) { // TODO: find a way around this hack
         // remove the the defunct request
-        RequestsCollection.remove({ linkedObjectId: document.userId, requesterId: document.friendId, type: 'friend' });
+        RequestsCollection.removeAsync({ linkedObjectId: document.userId, requesterId: document.friendId, type: 'friend' });
         // create a reverse record for the other user
         // so the connection happens for both users
-        FriendsCollection.insert({ userId: document.friendId, friendId: userId });
+        FriendsCollection.insertAsync({ userId: document.friendId, friendId: userId });
     }
 });
 
 FriendsCollection.after.remove(function afterRemove(userId, document) {
     // when a friend record is removed, remove the reverse record for the
     // other users so that the friend connection is terminated on both ends
-    FriendsCollection.direct.remove({ userId: document.friendId, friendId: userId });
+    FriendsCollection.direct.removeAsync({ userId: document.friendId, friendId: userId });
 });
 
 RequestsCollection.allow({
@@ -97,7 +101,7 @@ User.onBlocked(function onBlockedHook(userId, blockedUserId) {
     blockedUser.unfriend();
 
     // If there are any requests between the users, clean them up.
-    RequestsCollection.remove({
+    RequestsCollection.removeAsync({
         $or: [
             { linkedObjectId: userId, requesterId: blockedUserId },
             { linkedObjectId: blockedUserId, requesterId: userId },
