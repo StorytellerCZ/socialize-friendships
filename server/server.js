@@ -7,9 +7,13 @@ import { RequestsCollection } from 'meteor/socialize:requestable';
 import './publications.js';
 import { Friend, FriendsCollection } from '../common/common.js';
 
-FriendsCollection.createIndexAsync({ userId: 1 })
-FriendsCollection.createIndexAsync({ friendId: 1 })
-FriendsCollection.createIndexAsync({ createdAt: -1 })
+try {
+    FriendsCollection.createIndexAsync({ userId: 1 })
+    FriendsCollection.createIndexAsync({ friendId: 1 })
+    FriendsCollection.createIndexAsync({ createdAt: -1 })
+} catch (e) {
+    console.debug('Failed to create indexes for friends collection')
+}
 
 FriendsCollection.allow({
     insert(userId, friend) {
