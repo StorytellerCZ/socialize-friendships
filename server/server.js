@@ -59,14 +59,18 @@ FriendsCollection.after.remove(function afterRemove(userId, document) {
 });
 
 RequestsCollection.allow({
-    insert(userId, request) {
+    async insert(userId, request) {
         if (userId && request.type === 'friend') {
-            const user = Meteor.users.findOne({ _id: request.linkedObjectId });
-            const requester = Meteor.users.findOne({ _id: request.requesterId });
+            const user = await Meteor.users.findOneAsync({ _id: request.linkedObjectId });
+            const requester = await Meteor.users.findOneAsync({ _id: request.requesterId });
 
-            if (!user.isSelf() && !user.isFriendsWith(requester._id)) {
-                if (!(user.blocksUser(requester) || requester.blocksUserById(user._id))) {
-                    if (user.hasFriendshipRequestFrom(requester) || requester.hasFriendshipRequestFrom(user)) {
+            const isFriend = await user.isFriendsWith(requester._id)
+            if (!user.isSelf() && !isFriend) {
+                const blocks = await requester.blocksUserById(user._id)
+                if (!(user.blocksUser(requester) || blocks)) {
+                    const hasRequester = await user.hasFriendshipRequestFrom(requester)
+                    const hasRequest = await requester.hasFriendshipRequestFrom(user)
+                    if (hasRequester || hasRequest) {
                         throw new Meteor.Error('RequestExists', 'A request between users already exists');
                     } else {
                         return true;
