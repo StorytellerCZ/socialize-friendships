@@ -28,7 +28,7 @@
         "@socialize/requestable": "^1.0.6"
     },
     "devDependencies": {
-        "rimraf": "^3.0.2"
+        "rimraf": "^5.0.10"
     },
     "funding": [
         {
