@@ -57,7 +57,12 @@ export default ({ Meteor, User, Request, RequestsCollection, FriendsCollection }
         * @param   {String}  userId The user to check
         * @returns {Boolean} Whether the user is friends with the other
         */
-        async isFriendsWith(userId = Meteor.userId()) {
+        isFriendsWith(userId = Meteor.userId()) {
+            if (Meteor.isServer) { return this.isFriendsWithAsync(userId) }
+            const friend = FriendsCollection.findOne({ userId: this._id, friendId: userId }, { projection: { _id: 1 } });
+            return !!friend
+        },
+        async isFriendsWithAsync(userId = Meteor.userId()) {
             const friend = await FriendsCollection.findOneAsync({ userId: this._id, friendId: userId }, { projection: { _id: 1 } });
             return !!friend
         },
@@ -102,7 +107,19 @@ export default ({ Meteor, User, Request, RequestsCollection, FriendsCollection }
         * @param   {Object}  user The user to check if there is a request from
         * @returns {Boolean} Whether or not there is a pending request
         */
-        async hasFriendshipRequestFrom(user) {
+        hasFriendshipRequestFrom(user) {
+            if (Meteor.isServer) { return this.hasFriendshipRequestFromAsync(user) }
+            const request = RequestsCollection.findOne({ ...this.getLinkObject(), type: 'friend', requesterId: user._id }, { fields: { _id: 1, deniedAt: 1 } });
+
+            if (request) {
+                const minDate = request.deniedAt && request.deniedAt.getTime() + (3600000 * 24 * User.restrictFrienshipRequestDays);
+                if (!request.deniedAt || minDate > Date.now()) {
+                    return true;
+                }
+            }
+            return false;
+        },
+        async hasFriendshipRequestFromAsync(user) {
             const request = await RequestsCollection.findOneAsync({ ...this.getLinkObject(), type: 'friend', requesterId: user._id }, { fields: { _id: 1, deniedAt: 1 } });
 
             if (request) {

@@ -11,7 +11,7 @@ const optionsArgumentCheck = {
     sort: Match.Optional(Object),
 };
 
-publishComposite('socialize.friends', function publishFriends(userId, options = { limit: 20, sort: { createdAt: -1 } }) {
+publishComposite('socialize.friends', async function publishFriends(userId, options = { limit: 20, sort: { createdAt: -1 } }) {
     check(userId, String);
     check(options, optionsArgumentCheck);
     if (!this.userId) {
@@ -20,7 +20,10 @@ publishComposite('socialize.friends', function publishFriends(userId, options = 
     const currentUser = User.createEmpty(this.userId);
     const userToPublish = User.createEmpty(userId);
 
-    if (userToPublish.isSelf(currentUser) || (!currentUser.blocksUser(userToPublish) && !userToPublish.blocksUser(currentUser))) {
+    const blocksUsersToPublish = await currentUser.blocksUserAsync(userToPublish);
+    const blocksCurrentUser = await userToPublish.blocksUserAsync(currentUser);
+
+    if (userToPublish.isSelf(currentUser) || (!blocksUsersToPublish && !blocksCurrentUser)) {
         return {
             find() {
                 return userToPublish.friends(options);
