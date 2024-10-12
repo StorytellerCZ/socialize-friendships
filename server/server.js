@@ -106,7 +106,7 @@ RequestsCollection.allow({
 User.onBlocked(function onBlockedHook(userId, blockedUserId) {
     const blockedUser = User.createEmpty(blockedUserId);
     // If the users are friends, we need to sever that connection
-    blockedUser.unfriend();
+    blockedUser.unfriendAsync();
 
     // If there are any requests between the users, clean them up.
     RequestsCollection.removeAsync({
