@@ -43,7 +43,7 @@ export default ({ Meteor, User, Request, RequestsCollection, FriendsCollection }
             // take care of removing reverse friend connection for other user
             friend && friend.remove();
         },
-        async unfriend() {
+        async unfriendAsync() {
             const userId = Meteor.userId();
             const friend = await FriendsCollection.findOneAsync({ userId, friendId: this._id });
 
@@ -136,7 +136,7 @@ export default ({ Meteor, User, Request, RequestsCollection, FriendsCollection }
         */
         requestFriendship() {
             // insert the request, simple-schema takes care of default fields and values and allow takes care of permissions
-            new Request({ ...this.getLinkObject(), type: 'friend' }).save();
+            new Request({ ...this.getLinkObject(), type: 'friend' }).saveAsync();
         },
 
         /**
