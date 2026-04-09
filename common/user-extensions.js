@@ -144,7 +144,7 @@ export default ({ Meteor, User, Request, RequestsCollection, FriendsCollection }
         */
         async cancelFriendshipRequest() {
             const request = await RequestsCollection.findOneAsync({ ...this.getLinkObject(), type: 'friend', requesterId: Meteor.userId() });
-            request && request.cancel();
+            if (request) await request.cancel();
         },
 
         /**
@@ -156,7 +156,7 @@ export default ({ Meteor, User, Request, RequestsCollection, FriendsCollection }
                 requesterId: this._id,
                 linkedObjectId: Meteor.userId(),
             });
-            request && request.accept();
+            if (request) await request.accept();
         },
 
         /**
@@ -168,7 +168,7 @@ export default ({ Meteor, User, Request, RequestsCollection, FriendsCollection }
                 requesterId: this._id,
                 linkedObjectId: Meteor.userId(),
             });
-            request && request.deny();
+            if (request) await request.deny();
         },
 
         /**
@@ -180,7 +180,7 @@ export default ({ Meteor, User, Request, RequestsCollection, FriendsCollection }
                 requesterId: this._id,
                 linkedObjectId: Meteor.userId(),
             });
-            request && request.ignore();
+            if (request) await request.ignore();
         },
 
     });
